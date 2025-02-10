@@ -22,29 +22,67 @@ import { type Agent } from "@shared/schema";
 
 const PERSONALITY_TRAITS = {
   core: [
+    // Positive traits
     "Analytical",
     "Creative",
     "Practical",
     "Empathetic",
     "Logical",
+    // Negative traits
+    "Impulsive",
+    "Overconfident",
+    "Pessimistic",
+    "Cynical",
+    "Obsessive",
   ],
   social: [
+    // Positive traits
     "Extroverted",
-    "Introverted",
     "Diplomatic",
-    "Direct",
     "Supportive",
+    "Charismatic",
+    "Trustworthy",
+    // Negative traits
+    "Manipulative",
+    "Distrustful",
+    "Confrontational",
+    "Antisocial",
+    "Deceptive",
   ],
   work: [
+    // Positive traits
     "Organized",
-    "Flexible",
-    "Detail-oriented",
-    "Big-picture",
     "Strategic",
+    "Detail-oriented",
+    "Innovative",
+    "Resourceful",
+    // Negative traits
+    "Perfectionist",
+    "Procrastinator",
+    "Micromanager",
+    "Unfocused",
+    "Risk-averse",
   ],
 };
 
-const DRIVES = ["Curiosity", "Justice", "Ambition", "Compassion"];
+const DRIVES = [
+  // Positive drives
+  "Curiosity",
+  "Justice",
+  "Compassion",
+  "Knowledge",
+  "Protection",
+  // Complex/ambiguous drives
+  "Ambition",
+  "Recognition",
+  "Control",
+  "Independence",
+  // Negative drives
+  "Vengeance",
+  "Power",
+  "Greed",
+  "Dominance",
+];
 
 const CAMPAIGNS = ["Default", "Cyberpunk", "Lord of the Rings", "Blade Runner"];
 
@@ -169,7 +207,7 @@ export function AgentEditor({ agent, onUpdate }: AgentEditorProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="drives">Drives</Label>
+            <Label htmlFor="drives">Primary Drive</Label>
             <Select
               value={formData.drives}
               onValueChange={(value) =>
