@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { WEBHOOK_URLS } from "@/lib/constants";
 import { type Memory } from "@shared/schema";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface MemoryManagerProps {
   campaign: string;
@@ -97,38 +98,42 @@ export function MemoryManager({ campaign }: MemoryManagerProps) {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>Insert Memory</CardHeader>
-        <CardContent>
-          <Textarea
-            value={memoryText}
-            onChange={(e) => setMemoryText(e.target.value)}
-            placeholder="Enter memory text..."
-            className="mb-2"
-          />
-          <Button onClick={handleInsertMemory}>Insert Memory</Button>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>Insert Memory</CardHeader>
+          <CardContent>
+            <Textarea
+              value={memoryText}
+              onChange={(e) => setMemoryText(e.target.value)}
+              placeholder="Enter memory text..."
+              className="mb-2 h-[120px]"
+            />
+            <Button onClick={handleInsertMemory}>Insert Memory</Button>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>Retrieve Memories</CardHeader>
-        <CardContent>
-          <Input
-            value={queryText}
-            onChange={(e) => setQueryText(e.target.value)}
-            placeholder="Enter query text..."
-            className="mb-2"
-          />
-          <Button onClick={handleRetrieveMemories} className="mb-4">
-            Retrieve Memories
-          </Button>
-          {retrievedMemories.length > 0 && (
-            <pre className="bg-muted p-4 rounded-lg overflow-auto max-h-[200px]">
-              {JSON.stringify(retrievedMemories, null, 2)}
-            </pre>
-          )}
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>Retrieve Memories</CardHeader>
+          <CardContent>
+            <Input
+              value={queryText}
+              onChange={(e) => setQueryText(e.target.value)}
+              placeholder="Enter query text..."
+              className="mb-2"
+            />
+            <Button onClick={handleRetrieveMemories} className="mb-4">
+              Retrieve Memories
+            </Button>
+            {retrievedMemories.length > 0 && (
+              <ScrollArea className="h-[120px]">
+                <pre className="bg-muted p-4 rounded-lg text-sm">
+                  {JSON.stringify(retrievedMemories, null, 2)}
+                </pre>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader>Update Memories</CardHeader>

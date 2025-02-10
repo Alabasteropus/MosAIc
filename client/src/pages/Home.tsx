@@ -5,7 +5,9 @@ import { ConversationWindow } from "@/components/ConversationWindow";
 import { MemoryManager } from "@/components/MemoryManager";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { type Agent } from "@shared/schema";
-import { Brain, MessageSquare, Database } from "lucide-react";
+import { MessageSquare, Database } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [agent, setAgent] = useState<Agent>({
@@ -77,21 +79,23 @@ export default function Home() {
                     <p className="text-foreground">{agent.campaign}</p>
                   </div>
                 </div>
-                <div className="mt-6">
+                <div className="mt-6 space-y-4">
                   <AgentEditor agent={agent} onUpdate={handleAgentUpdate} />
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="w-full flex items-center gap-2">
+                        <Database className="h-4 w-4" />
+                        Manage Memories
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Memory Management</DialogTitle>
+                      </DialogHeader>
+                      <MemoryManager campaign={agent.campaign} />
+                    </DialogContent>
+                  </Dialog>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-primary/20">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Database className="h-5 w-5 text-primary" />
-                  <CardTitle>Memory Management</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <MemoryManager campaign={agent.campaign} />
               </CardContent>
             </Card>
           </div>
