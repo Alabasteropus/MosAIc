@@ -17,8 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { type Agent } from "@shared/schema";
+import { Upload } from "lucide-react";
 
 const PERSONALITY_TRAITS = {
   core: [
@@ -37,11 +39,11 @@ const PERSONALITY_TRAITS = {
   ],
   social: [
     // Positive traits
-    "Extroverted",
     "Diplomatic",
     "Supportive",
     "Charismatic",
     "Trustworthy",
+    "Extroverted",
     // Negative traits
     "Manipulative",
     "Distrustful",
@@ -51,11 +53,11 @@ const PERSONALITY_TRAITS = {
   ],
   work: [
     // Positive traits
-    "Organized",
     "Strategic",
     "Detail-oriented",
     "Innovative",
     "Resourceful",
+    "Organized",
     // Negative traits
     "Perfectionist",
     "Procrastinator",
@@ -84,7 +86,7 @@ const DRIVES = [
   "Dominance",
 ];
 
-const CAMPAIGNS = ["Default", "Cyberpunk", "Lord of the Rings", "Blade Runner"];
+const CAMPAIGNS = ["Default", "Cyberpunk", "Fantasy", "Sci-fi"];
 
 interface AgentEditorProps {
   agent: Agent;
@@ -95,6 +97,7 @@ export function AgentEditor({ agent, onUpdate }: AgentEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     ...agent,
+    avatarUrl: agent.avatarUrl || "",
     traits: Array.isArray(agent.traits) ? agent.traits : [
       PERSONALITY_TRAITS.core[0],
       PERSONALITY_TRAITS.social[0],
@@ -103,6 +106,18 @@ export function AgentEditor({ agent, onUpdate }: AgentEditorProps) {
     secondaryDrive: agent.secondaryDrive || DRIVES[0],
   });
   const { toast } = useToast();
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setFormData({ ...formData, avatarUrl: base64String });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +139,31 @@ export function AgentEditor({ agent, onUpdate }: AgentEditorProps) {
           <DialogTitle>Edit Agent Profile</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex flex-col items-center space-y-4">
+            <Avatar className="h-24 w-24 border-2 border-primary/20">
+              <AvatarImage src={formData.avatarUrl} />
+              <AvatarFallback className="bg-primary/5 text-2xl">
+                {formData.name[0]}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex items-center gap-2">
+              <Input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                id="avatar-upload"
+                onChange={handleImageUpload}
+              />
+              <Label
+                htmlFor="avatar-upload"
+                className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-md cursor-pointer hover:bg-primary/20 transition-colors"
+              >
+                <Upload className="h-4 w-4" />
+                Upload Avatar
+              </Label>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input

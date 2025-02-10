@@ -10,6 +10,7 @@ export const agents = pgTable("agents", {
   secondaryDrive: text("secondaryDrive").notNull(),
   backstory: text("backstory").notNull(),
   campaign: text("campaign").notNull(),
+  avatarUrl: text("avatarUrl").default(""),
 });
 
 export const memories = pgTable("memories", {
