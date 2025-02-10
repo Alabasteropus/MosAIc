@@ -5,7 +5,7 @@ import { z } from "zod";
 export const agents = pgTable("agents", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  traits: text("traits").notNull(),
+  traits: json("traits").$type<string[]>().notNull(),
   drives: text("drives").notNull(),
   backstory: text("backstory").notNull(),
   campaign: text("campaign").notNull(),

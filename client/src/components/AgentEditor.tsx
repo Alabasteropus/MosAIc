@@ -20,11 +20,29 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { type Agent } from "@shared/schema";
 
-const PERSONALITY_TRAITS = [
-  "Witty, Observant",
-  "Serious, Focused",
-  "Cheerful, Energetic",
-];
+const PERSONALITY_TRAITS = {
+  core: [
+    "Analytical",
+    "Creative",
+    "Practical",
+    "Empathetic",
+    "Logical",
+  ],
+  social: [
+    "Extroverted",
+    "Introverted",
+    "Diplomatic",
+    "Direct",
+    "Supportive",
+  ],
+  work: [
+    "Organized",
+    "Flexible",
+    "Detail-oriented",
+    "Big-picture",
+    "Strategic",
+  ],
+};
 
 const DRIVES = ["Curiosity", "Justice", "Ambition", "Compassion"];
 
@@ -37,7 +55,14 @@ interface AgentEditorProps {
 
 export function AgentEditor({ agent, onUpdate }: AgentEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState(agent);
+  const [formData, setFormData] = useState({
+    ...agent,
+    traits: Array.isArray(agent.traits) ? agent.traits : [
+      PERSONALITY_TRAITS.core[0],
+      PERSONALITY_TRAITS.social[0],
+      PERSONALITY_TRAITS.work[0],
+    ],
+  });
   const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -72,18 +97,69 @@ export function AgentEditor({ agent, onUpdate }: AgentEditorProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="traits">Personality Traits</Label>
+            <Label>Core Personality Trait</Label>
             <Select
-              value={formData.traits}
+              value={formData.traits[0]}
               onValueChange={(value) =>
-                setFormData({ ...formData, traits: value })
+                setFormData({
+                  ...formData,
+                  traits: [value, formData.traits[1], formData.traits[2]],
+                })
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select traits" />
+                <SelectValue placeholder="Select core trait" />
               </SelectTrigger>
               <SelectContent>
-                {PERSONALITY_TRAITS.map((trait) => (
+                {PERSONALITY_TRAITS.core.map((trait) => (
+                  <SelectItem key={trait} value={trait}>
+                    {trait}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Social Personality Trait</Label>
+            <Select
+              value={formData.traits[1]}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  traits: [formData.traits[0], value, formData.traits[2]],
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select social trait" />
+              </SelectTrigger>
+              <SelectContent>
+                {PERSONALITY_TRAITS.social.map((trait) => (
+                  <SelectItem key={trait} value={trait}>
+                    {trait}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Work Style Trait</Label>
+            <Select
+              value={formData.traits[2]}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  traits: [formData.traits[0], formData.traits[1], value],
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select work trait" />
+              </SelectTrigger>
+              <SelectContent>
+                {PERSONALITY_TRAITS.work.map((trait) => (
                   <SelectItem key={trait} value={trait}>
                     {trait}
                   </SelectItem>

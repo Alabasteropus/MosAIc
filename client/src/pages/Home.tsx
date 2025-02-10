@@ -9,7 +9,7 @@ export default function Home() {
   const [agent, setAgent] = useState<Agent>({
     id: 1,
     name: "Alice",
-    traits: "Witty, Observant",
+    traits: ["Analytical", "Diplomatic", "Strategic"],
     drives: "Curiosity",
     backstory: "A seasoned detective in a futuristic city.",
     campaign: "Default",
@@ -33,7 +33,7 @@ export default function Home() {
                   <strong>Name:</strong> {agent.name}
                 </p>
                 <p>
-                  <strong>Traits:</strong> {agent.traits}
+                  <strong>Traits:</strong> {agent.traits.join(", ")}
                 </p>
                 <p>
                   <strong>Drives:</strong> {agent.drives}
