@@ -1,0 +1,671 @@
+Replit Agent Prompt:
+
+less
+Copy
+Create a simple frontend in HTML, CSS, and JavaScript that provides the following sections:
+1. Insert Memory – a textarea for memory text and a button that sends a POST request (with JSON) to an endpoint (placeholder URL: https://YOUR_N8N_ENDPOINT/insert-memory). The JSON should include the text and metadata (e.g., type "episodic", current timestamp, importance 1.0, campaign "campaign_test").
+2. Retrieve Memories – an input for query text and a button that sends a POST request to https://YOUR_N8N_ENDPOINT/retrieve-memory. The JSON should include the query text and campaign identifier. Display the JSON response in a preformatted text block.
+3. Update Memories (Simulate Decay) – a button that sends a POST request to https://YOUR_N8N_ENDPOINT/update-memory.
+4. Build Prompt – an input for user input and a button that sends a POST request to https://YOUR_N8N_ENDPOINT/build-prompt. The JSON should include the user input and campaign identifier, and the response (generated prompt) should be displayed in a preformatted text block.
+5. Agent Editing Modal – a modal dialog that opens when clicking an “Edit Agent” button. This modal should allow editing of agent variables using dropdown menus and text fields. Variables should include:
+   - Agent Name (text input)
+   - Personality Traits (dropdown: e.g. "Witty", "Observant", "Serious", "Cheerful")
+   - Drives (dropdown: e.g. "Justice", "Curiosity", "Ambition", "Compassion")
+   - Backstory (textarea)
+   - Campaign (dropdown: e.g. "Cyberpunk", "Lord of the Rings", "Blade Runner", "Default")
+When the modal is saved, the agent profile should be updated and used to construct the prompt.
+
+The code should include comments explaining each section, use basic CSS for a clean layout, and use the fetch API for HTTP requests. Output the complete code as a single file.
+When you run this prompt in the Replit Agent, it should generate code similar to the following:
+
+html
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Agent Control Panel</title>
+  <style>
+    /* Basic styling for readability */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f0f0f0;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    textarea, input, button, select {
+      margin: 5px 0;
+      padding: 10px;
+      width: 100%;
+      max-width: 500px;
+      box-sizing: border-box;
+    }
+    pre {
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      max-width: 500px;
+      white-space: pre-wrap;
+    }
+    /* Modal styling */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 90%;
+      max-width: 600px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Agent Control Panel</h1>
+  
+  <!-- Agent Editing Section -->
+  <button id="editAgentButton">Edit Agent</button>
+  <div id="agentInfo">
+    <p><strong>Name:</strong> <span id="agentNameDisplay">Alice</span></p>
+    <p><strong>Personality:</strong> <span id="agentTraitsDisplay">Witty, Observant</span></p>
+    <p><strong>Drives:</strong> <span id="agentDrivesDisplay">Curiosity</span></p>
+    <p><strong>Backstory:</strong> <span id="agentBackstoryDisplay">A seasoned detective in a futuristic city.</span></p>
+    <p><strong>Campaign:</strong> <span id="agentCampaignDisplay">Default</span></p>
+  </div>
+  
+  <!-- Agent Editing Modal -->
+  <div id="agentModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <h2>Edit Agent Profile</h2>
+      <label for="agentName">Agent Name:</label>
+      <input type="text" id="agentName" value="Alice">
+      
+      <label for="agentTraits">Personality Traits:</label>
+      <select id="agentTraits">
+        <option value="Witty, Observant">Witty, Observant</option>
+        <option value="Serious, Focused">Serious, Focused</option>
+        <option value="Cheerful, Energetic">Cheerful, Energetic</option>
+      </select>
+      
+      <label for="agentDrives">Drives:</label>
+      <select id="agentDrives">
+        <option value="Curiosity">Curiosity</option>
+        <option value="Justice">Justice</option>
+        <option value="Ambition">Ambition</option>
+        <option value="Compassion">Compassion</option>
+      </select>
+      
+      <label for="agentBackstory">Backstory:</label>
+      <textarea id="agentBackstory">A seasoned detective in a futuristic city.</textarea>
+      
+      <label for="agentCampaign">Campaign:</label>
+      <select id="agentCampaign">
+        <option value="Default">Default</option>
+        <option value="Cyberpunk">Cyberpunk</option>
+        <option value="Lord of the Rings">Lord of the Rings</option>
+        <option value="Blade Runner">Blade Runner</option>
+      </select>
+      
+      <button id="saveAgentButton">Save Profile</button>
+    </div>
+  </div>
+  
+  <!-- Insert Memory Section -->
+  <div>
+    <h2>Insert Memory</h2>
+    <textarea id="insertMemoryText" placeholder="Enter memory text here"></textarea>
+    <button id="insertMemoryButton">Insert Memory</button>
+  </div>
+  
+  <!-- Retrieve Memories Section -->
+  <div>
+    <h2>Retrieve Memories</h2>
+    <input id="queryText" placeholder="Enter query text">
+    <button id="retrieveMemoryButton">Retrieve Memories</button>
+    <pre id="retrievedOutput"></pre>
+  </div>
+  
+  <!-- Update Memories (Decay) Section -->
+  <div>
+    <h2>Update Memories (Simulate Decay)</h2>
+    <button id="updateMemoryButton">Update Memory Importance</button>
+  </div>
+  
+  <!-- Build Prompt Section -->
+  <div>
+    <h2>Build Prompt</h2>
+    <input id="userInput" placeholder="Enter user input">
+    <button id="buildPromptButton">Build Prompt</button>
+    <pre id="promptOutput"></pre>
+  </div>
+
+  <script>
+    // Global Agent Profile (can be updated by the modal)
+    let agentProfile = {
+      name: "Alice",
+      traits: "Witty, Observant",
+      drives: "Curiosity",
+      backstory: "A seasoned detective in a futuristic city.",
+      campaign: "Default"
+    };
+
+    // Update display with current agent profile
+    function updateAgentDisplay() {
+      document.getElementById('agentNameDisplay').textContent = agentProfile.name;
+      document.getElementById('agentTraitsDisplay').textContent = agentProfile.traits;
+      document.getElementById('agentDrivesDisplay').textContent = agentProfile.drives;
+      document.getElementById('agentBackstoryDisplay').textContent = agentProfile.backstory;
+      document.getElementById('agentCampaignDisplay').textContent = agentProfile.campaign;
+    }
+    updateAgentDisplay();
+
+    // Agent Editing Modal Logic
+    const modal = document.getElementById("agentModal");
+    const editBtn = document.getElementById("editAgentButton");
+    const closeModal = document.getElementById("closeModal");
+    const saveAgentBtn = document.getElementById("saveAgentButton");
+
+    editBtn.onclick = function() {
+      modal.style.display = "block";
+      // Pre-fill modal inputs with current values
+      document.getElementById('agentName').value = agentProfile.name;
+      document.getElementById('agentTraits').value = agentProfile.traits;
+      document.getElementById('agentDrives').value = agentProfile.drives;
+      document.getElementById('agentBackstory').value = agentProfile.backstory;
+      document.getElementById('agentCampaign').value = agentProfile.campaign;
+    }
+
+    closeModal.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    saveAgentBtn.onclick = function() {
+      // Update the agentProfile from modal inputs
+      agentProfile.name = document.getElementById('agentName').value;
+      agentProfile.traits = document.getElementById('agentTraits').value;
+      agentProfile.drives = document.getElementById('agentDrives').value;
+      agentProfile.backstory = document.getElementById('agentBackstory').value;
+      agentProfile.campaign = document.getElementById('agentCampaign').value;
+      
+      updateAgentDisplay();
+      modal.style.display = "none";
+      alert("Agent profile updated!");
+    }
+
+    // Insert Memory
+    document.getElementById('insertMemoryButton').addEventListener('click', () => {
+      const memoryText = document.getElementById('insertMemoryText').value;
+      fetch('https://YOUR_N8N_ENDPOINT/insert-memory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: memoryText,
+          metadata: {
+            type: 'episodic',
+            timestamp: new Date().toISOString(),
+            importance: 1.0,
+            campaign: agentProfile.campaign
+          }
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert('Memory inserted successfully!');
+      })
+      .catch(err => console.error('Insert Error:', err));
+    });
+
+    // Retrieve Memories
+    document.getElementById('retrieveMemoryButton').addEventListener('click', () => {
+      const queryText = document.getElementById('queryText').value;
+      fetch('https://YOUR_N8N_ENDPOINT/retrieve-memory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: queryText, campaign: agentProfile.campaign })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('retrievedOutput').textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(err => console.error('Retrieve Error:', err));
+    });
+
+    // Update Memories (Simulate Decay)
+    document.getElementById('updateMemoryButton').addEventListener('click', () => {
+      fetch('https://YOUR_N8N_ENDPOINT/update-memory', {
+        method: 'POST'
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert('Memory update executed!');
+      })
+      .catch(err => console.error('Update Error:', err));
+    });
+
+    // Build Prompt
+    document.getElementById('buildPromptButton').addEventListener('click', () => {
+      const userInput = document.getElementById('userInput').value;
+      fetch('https://YOUR_N8N_ENDPOINT/build-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userInput: userInput, campaign: agentProfile.campaign, agentProfile: agentProfile })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('promptOutput').textContent = data.prompt;
+      })
+      .catch(err => console.error('Build Prompt Error:', err));
+    });
+
+    // Close modal if user clicks outside the modal content
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+  </script>
+</body>
+</html>
+How It Works
+Agent Editing Modal:
+– Click the "Edit Agent" button to open the modal.
+– Change the values (name, personality traits, drives, backstory, campaign) using dropdowns and text inputs.
+– Click "Save Profile" to update the global agentProfile variable and the display.
+– The updated profile is used in subsequent operations (for example, when building the prompt).
+
+Memory Operations:
+– “Insert Memory” sends a memory text along with metadata that now includes the current campaign from the agent profile.
+– “Retrieve Memories” and “Build Prompt” include the campaign and agent profile data in their POST payloads.
+– “Update Memory” triggers a decay simulation.
+
+This simple MVP lets you test updating your vector store and dynamically adjusting the agent’s properties in real time via the frontend. You can later expand and refine the logic and UI as needed.
+
+Feel free to adjust the styling or add additional fields and logic based on your evolving requirements!
+
+
+
+
+
+
+You said:
+Then I will need a conversation window and a window for the user to talk to the agent
+Reasoned for 4 seconds
+Below is an updated complete example of a single‑file HTML/JavaScript frontend that includes:
+
+The previous sections (Insert Memory, Retrieve Memories, Update Memories, Build Prompt, and Agent Editing Modal)
+A Conversation Window: where the ongoing dialogue is displayed
+A Chat Input Window: where the user can type messages to the agent
+You can copy and paste this code into a new Replit project (using the “HTML, CSS, JS” template) and then adjust the placeholder webhook URLs (e.g. https://YOUR_N8N_ENDPOINT/...) to point to your actual n8n endpoints.
+
+html
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Agent Control Panel & Conversation</title>
+  <style>
+    /* Basic Styling */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f0f0f0;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    textarea, input, button, select {
+      margin: 5px 0;
+      padding: 10px;
+      width: 100%;
+      max-width: 500px;
+      box-sizing: border-box;
+    }
+    pre {
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      max-width: 500px;
+      white-space: pre-wrap;
+    }
+    /* Modal Styling */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 90%;
+      max-width: 600px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    /* Conversation Window */
+    #conversationWindow {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      width: 100%;
+      max-width: 500px;
+      height: 300px;
+      overflow-y: scroll;
+      margin-bottom: 10px;
+    }
+    .chat-message {
+      margin: 5px 0;
+    }
+    .chat-message.user {
+      text-align: right;
+      color: #0066cc;
+    }
+    .chat-message.agent {
+      text-align: left;
+      color: #cc0000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Agent Control Panel</h1>
+  
+  <!-- Agent Editing Section -->
+  <button id="editAgentButton">Edit Agent</button>
+  <div id="agentInfo">
+    <p><strong>Name:</strong> <span id="agentNameDisplay">Alice</span></p>
+    <p><strong>Personality:</strong> <span id="agentTraitsDisplay">Witty, Observant</span></p>
+    <p><strong>Drives:</strong> <span id="agentDrivesDisplay">Curiosity</span></p>
+    <p><strong>Backstory:</strong> <span id="agentBackstoryDisplay">A seasoned detective in a futuristic city.</span></p>
+    <p><strong>Campaign:</strong> <span id="agentCampaignDisplay">Default</span></p>
+  </div>
+  
+  <!-- Agent Editing Modal -->
+  <div id="agentModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <h2>Edit Agent Profile</h2>
+      <label for="agentName">Agent Name:</label>
+      <input type="text" id="agentName" value="Alice">
+      
+      <label for="agentTraits">Personality Traits:</label>
+      <select id="agentTraits">
+        <option value="Witty, Observant">Witty, Observant</option>
+        <option value="Serious, Focused">Serious, Focused</option>
+        <option value="Cheerful, Energetic">Cheerful, Energetic</option>
+      </select>
+      
+      <label for="agentDrives">Drives:</label>
+      <select id="agentDrives">
+        <option value="Curiosity">Curiosity</option>
+        <option value="Justice">Justice</option>
+        <option value="Ambition">Ambition</option>
+        <option value="Compassion">Compassion</option>
+      </select>
+      
+      <label for="agentBackstory">Backstory:</label>
+      <textarea id="agentBackstory">A seasoned detective in a futuristic city.</textarea>
+      
+      <label for="agentCampaign">Campaign:</label>
+      <select id="agentCampaign">
+        <option value="Default">Default</option>
+        <option value="Cyberpunk">Cyberpunk</option>
+        <option value="Lord of the Rings">Lord of the Rings</option>
+        <option value="Blade Runner">Blade Runner</option>
+      </select>
+      
+      <button id="saveAgentButton">Save Profile</button>
+    </div>
+  </div>
+  
+  <!-- Memory Operations -->
+  <div>
+    <h2>Insert Memory</h2>
+    <textarea id="insertMemoryText" placeholder="Enter memory text here"></textarea>
+    <button id="insertMemoryButton">Insert Memory</button>
+  </div>
+  
+  <div>
+    <h2>Retrieve Memories</h2>
+    <input id="queryText" placeholder="Enter query text">
+    <button id="retrieveMemoryButton">Retrieve Memories</button>
+    <pre id="retrievedOutput"></pre>
+  </div>
+  
+  <div>
+    <h2>Update Memories (Simulate Decay)</h2>
+    <button id="updateMemoryButton">Update Memory Importance</button>
+  </div>
+  
+  <div>
+    <h2>Build Prompt</h2>
+    <input id="userInput" placeholder="Enter user input">
+    <button id="buildPromptButton">Build Prompt</button>
+    <pre id="promptOutput"></pre>
+  </div>
+  
+  <!-- Conversation Window -->
+  <div>
+    <h2>Conversation</h2>
+    <div id="conversationWindow"></div>
+    <input id="chatInput" placeholder="Type your message here">
+    <button id="sendChatButton">Send</button>
+  </div>
+  
+  <script>
+    /***** Global Agent Profile *****/
+    let agentProfile = {
+      name: "Alice",
+      traits: "Witty, Observant",
+      drives: "Curiosity",
+      backstory: "A seasoned detective in a futuristic city.",
+      campaign: "Default"
+    };
+
+    function updateAgentDisplay() {
+      document.getElementById('agentNameDisplay').textContent = agentProfile.name;
+      document.getElementById('agentTraitsDisplay').textContent = agentProfile.traits;
+      document.getElementById('agentDrivesDisplay').textContent = agentProfile.drives;
+      document.getElementById('agentBackstoryDisplay').textContent = agentProfile.backstory;
+      document.getElementById('agentCampaignDisplay').textContent = agentProfile.campaign;
+    }
+    updateAgentDisplay();
+
+    /***** Agent Editing Modal Logic *****/
+    const modal = document.getElementById("agentModal");
+    const editBtn = document.getElementById("editAgentButton");
+    const closeModal = document.getElementById("closeModal");
+    const saveAgentBtn = document.getElementById("saveAgentButton");
+
+    editBtn.onclick = function() {
+      modal.style.display = "block";
+      document.getElementById('agentName').value = agentProfile.name;
+      document.getElementById('agentTraits').value = agentProfile.traits;
+      document.getElementById('agentDrives').value = agentProfile.drives;
+      document.getElementById('agentBackstory').value = agentProfile.backstory;
+      document.getElementById('agentCampaign').value = agentProfile.campaign;
+    }
+
+    closeModal.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    saveAgentBtn.onclick = function() {
+      agentProfile.name = document.getElementById('agentName').value;
+      agentProfile.traits = document.getElementById('agentTraits').value;
+      agentProfile.drives = document.getElementById('agentDrives').value;
+      agentProfile.backstory = document.getElementById('agentBackstory').value;
+      agentProfile.campaign = document.getElementById('agentCampaign').value;
+      
+      updateAgentDisplay();
+      modal.style.display = "none";
+      alert("Agent profile updated!");
+    }
+
+    /***** Memory Operations *****/
+    // Insert Memory
+    document.getElementById('insertMemoryButton').addEventListener('click', () => {
+      const memoryText = document.getElementById('insertMemoryText').value;
+      fetch('https://YOUR_N8N_ENDPOINT/insert-memory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: memoryText,
+          metadata: {
+            type: 'episodic',
+            timestamp: new Date().toISOString(),
+            importance: 1.0,
+            campaign: agentProfile.campaign
+          }
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert('Memory inserted successfully!');
+      })
+      .catch(err => console.error('Insert Error:', err));
+    });
+
+    // Retrieve Memories
+    document.getElementById('retrieveMemoryButton').addEventListener('click', () => {
+      const queryText = document.getElementById('queryText').value;
+      fetch('https://YOUR_N8N_ENDPOINT/retrieve-memory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: queryText, campaign: agentProfile.campaign })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('retrievedOutput').textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(err => console.error('Retrieve Error:', err));
+    });
+
+    // Update Memories (Simulate Decay)
+    document.getElementById('updateMemoryButton').addEventListener('click', () => {
+      fetch('https://YOUR_N8N_ENDPOINT/update-memory', { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        alert('Memory update executed!');
+      })
+      .catch(err => console.error('Update Error:', err));
+    });
+
+    // Build Prompt (for testing purpose)
+    document.getElementById('buildPromptButton').addEventListener('click', () => {
+      const userInput = document.getElementById('userInput').value;
+      fetch('https://YOUR_N8N_ENDPOINT/build-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userInput: userInput, campaign: agentProfile.campaign, agentProfile: agentProfile })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('promptOutput').textContent = data.prompt;
+      })
+      .catch(err => console.error('Build Prompt Error:', err));
+    });
+
+    /***** Conversation Window and Chat Input *****/
+    const conversationWindow = document.getElementById('conversationWindow');
+    const chatInput = document.getElementById('chatInput');
+    const sendChatButton = document.getElementById('sendChatButton');
+
+    // Helper function to append a chat message to the conversation window
+    function appendMessage(sender, message) {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('chat-message', sender);
+      messageDiv.textContent = message;
+      conversationWindow.appendChild(messageDiv);
+      conversationWindow.scrollTop = conversationWindow.scrollHeight;
+    }
+
+    // Handle sending a chat message
+    sendChatButton.addEventListener('click', () => {
+      const message = chatInput.value;
+      if (!message) return;
+      
+      // Append user's message
+      appendMessage('user', "User: " + message);
+      
+      // Send the message to your conversation endpoint (using build-prompt endpoint for this demo)
+      fetch('https://YOUR_N8N_ENDPOINT/build-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userInput: message, campaign: agentProfile.campaign, agentProfile: agentProfile })
+      })
+      .then(res => res.json())
+      .then(data => {
+        // Append the agent's reply to the conversation window
+        appendMessage('agent', agentProfile.name + ": " + data.prompt);
+      })
+      .catch(err => console.error('Conversation Error:', err));
+
+      // Clear the input field after sending
+      chatInput.value = "";
+    });
+
+    // Optionally, send message on Enter key
+    chatInput.addEventListener('keypress', (e) => {
+      if(e.key === 'Enter'){
+        sendChatButton.click();
+      }
+    });
+
+    // Close modal if user clicks outside of modal content
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+  </script>
+</body>
+</html>
+How This Works
+Agent Editing Modal:
+
+Click “Edit Agent” to open the modal, adjust agent properties (name, traits, drives, backstory, campaign), and save to update the global agent profile.
+The updated profile is shown in the Agent Info section and used in subsequent operations.
+Memory Operations:
+
+Use the provided sections to insert a memory, retrieve memories, update memory importance (simulate decay), or build a prompt.
+Conversation Window:
+
+The conversation window displays messages.
+The user types a message in the chat input and clicks “Send” (or presses Enter).
+The user’s message is appended to the conversation window, then a POST request is sent (to your build-prompt endpoint) to generate the agent’s reply, which is then appended to the conversation window.
+Webhook Endpoints:
+
+Make sure to update the placeholder URLs (https://YOUR_N8N_ENDPOINT/...) with your actual n8n webhook endpoints.
+This complete example gives you an MVP frontend that not only handles memory updates and profile editing but also supports a two‑way conversation between the user and the agent. Feel free to customize or extend the UI and functionality as needed for your project.
