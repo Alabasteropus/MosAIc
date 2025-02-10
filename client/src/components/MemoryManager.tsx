@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { WEBHOOK_URLS } from "@/lib/constants";
 import { type Memory } from "@shared/schema";
 
 interface MemoryManagerProps {
@@ -19,14 +19,22 @@ export function MemoryManager({ campaign }: MemoryManagerProps) {
 
   const handleInsertMemory = async () => {
     try {
-      await apiRequest("POST", "/api/memories", {
-        text: memoryText,
-        type: "episodic",
-        timestamp: new Date().toISOString(),
-        importance: 1.0,
-        campaign,
-        metadata: {},
+      const response = await fetch(WEBHOOK_URLS.insertMemory, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: memoryText,
+          metadata: {
+            type: "episodic",
+            timestamp: new Date().toISOString(),
+            importance: 1.0,
+            campaign: campaign
+          }
+        })
       });
+
+      if (!response.ok) throw new Error('Failed to insert memory');
+
       setMemoryText("");
       toast({
         title: "Success",
@@ -43,10 +51,17 @@ export function MemoryManager({ campaign }: MemoryManagerProps) {
 
   const handleRetrieveMemories = async () => {
     try {
-      const response = await apiRequest("POST", "/api/memories/retrieve", {
-        query: queryText,
-        campaign,
+      const response = await fetch(WEBHOOK_URLS.retrieveMemory, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: queryText,
+          campaign: campaign
+        })
       });
+
+      if (!response.ok) throw new Error('Failed to retrieve memories');
+
       const memories = await response.json();
       setRetrievedMemories(memories);
     } catch (error) {
@@ -60,7 +75,13 @@ export function MemoryManager({ campaign }: MemoryManagerProps) {
 
   const handleUpdateMemories = async () => {
     try {
-      await apiRequest("POST", "/api/memories/update", {});
+      const response = await fetch(WEBHOOK_URLS.updateMemory, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!response.ok) throw new Error('Failed to update memories');
+
       toast({
         title: "Success",
         description: "Memory importance updated",
