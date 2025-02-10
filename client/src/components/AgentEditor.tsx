@@ -100,6 +100,7 @@ export function AgentEditor({ agent, onUpdate }: AgentEditorProps) {
       PERSONALITY_TRAITS.social[0],
       PERSONALITY_TRAITS.work[0],
     ],
+    secondaryDrive: agent.secondaryDrive || DRIVES[0],
   });
   const { toast } = useToast();
 
@@ -216,6 +217,27 @@ export function AgentEditor({ agent, onUpdate }: AgentEditorProps) {
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select drives" />
+              </SelectTrigger>
+              <SelectContent>
+                {DRIVES.map((drive) => (
+                  <SelectItem key={drive} value={drive}>
+                    {drive}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="secondaryDrive">Secondary Drive</Label>
+            <Select
+              value={formData.secondaryDrive}
+              onValueChange={(value) =>
+                setFormData({ ...formData, secondaryDrive: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select secondary drive" />
               </SelectTrigger>
               <SelectContent>
                 {DRIVES.map((drive) => (

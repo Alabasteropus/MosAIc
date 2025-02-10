@@ -7,6 +7,7 @@ export const agents = pgTable("agents", {
   name: text("name").notNull(),
   traits: json("traits").$type<string[]>().notNull(),
   drives: text("drives").notNull(),
+  secondaryDrive: text("secondaryDrive").notNull(),
   backstory: text("backstory").notNull(),
   campaign: text("campaign").notNull(),
 });

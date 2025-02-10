@@ -11,6 +11,7 @@ export default function Home() {
     name: "Alice",
     traits: ["Analytical", "Diplomatic", "Strategic"],
     drives: "Curiosity",
+    secondaryDrive: "Knowledge",
     backstory: "A seasoned detective in a futuristic city.",
     campaign: "Default",
   });
@@ -36,7 +37,10 @@ export default function Home() {
                   <strong>Traits:</strong> {agent.traits.join(", ")}
                 </p>
                 <p>
-                  <strong>Drives:</strong> {agent.drives}
+                  <strong>Primary Drive:</strong> {agent.drives}
+                </p>
+                <p>
+                  <strong>Secondary Drive:</strong> {agent.secondaryDrive}
                 </p>
                 <p>
                   <strong>Backstory:</strong> {agent.backstory}
