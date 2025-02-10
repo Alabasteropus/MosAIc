@@ -3,6 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { WEBHOOK_URLS } from "@/lib/constants";
 import { type Agent } from "@shared/schema";
 
@@ -56,7 +57,7 @@ export function ConversationWindow({ agent }: ConversationWindowProps) {
       const agentMessage: Message = {
         id: Date.now() + 1,
         sender: "agent",
-        text: `${agent.name}: ${data.prompt}`,
+        text: data.prompt,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, agentMessage]);
@@ -85,24 +86,54 @@ export function ConversationWindow({ agent }: ConversationWindowProps) {
                 message.sender === "user" ? "justify-end" : "justify-start"
               }`}
             >
-              <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                  message.sender === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted"
-                }`}
-              >
-                <p>{message.text}</p>
-                <span className="text-xs opacity-70">
-                  {message.timestamp.toLocaleTimeString()}
-                </span>
-              </div>
+              {message.sender === "agent" && (
+                <div className="flex items-start space-x-2">
+                  <Avatar className="h-8 w-8 border border-primary/20">
+                    <AvatarImage src={agent.avatarUrl} />
+                    <AvatarFallback className="bg-primary/5 text-sm">
+                      {agent.name[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground mb-1">
+                      {agent.name}
+                    </div>
+                    <div className="bg-muted rounded-lg px-4 py-2">
+                      <p>{message.text}</p>
+                      <span className="text-xs opacity-70">
+                        {message.timestamp.toLocaleTimeString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {message.sender === "user" && (
+                <div className="bg-primary text-primary-foreground rounded-lg px-4 py-2">
+                  <p>{message.text}</p>
+                  <span className="text-xs opacity-70">
+                    {message.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
+              )}
             </div>
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-muted rounded-lg px-4 py-2">
-                <p>Thinking...</p>
+              <div className="flex items-start space-x-2">
+                <Avatar className="h-8 w-8 border border-primary/20">
+                  <AvatarImage src={agent.avatarUrl} />
+                  <AvatarFallback className="bg-primary/5 text-sm">
+                    {agent.name[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground mb-1">
+                    {agent.name}
+                  </div>
+                  <div className="bg-muted rounded-lg px-4 py-2">
+                    <p>Thinking...</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
